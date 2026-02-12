@@ -36,9 +36,10 @@ jobs:
           echo "GOOGLE_CLIENT_SECRET=${{ secrets.GOOGLE_CLIENT_SECRET }}" >> .env
 
       - name: Build with webpack (Turbopack incompatible with Firebase)
-        run: npx next build --no-turbopack
+        run: npx next build
         env:
           NODE_ENV: production
+          TURBOPACK: "0"
 
       - name: Enable web frameworks experiment
         run: npx firebase-tools experiments:enable webframeworks
