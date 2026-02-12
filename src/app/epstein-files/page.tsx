@@ -1,6 +1,7 @@
 import { epsteinDocuments } from '@/lib/db';
 import Link from 'next/link';
 import { Search, FileText, BookOpen, ExternalLink, AlertTriangle } from 'lucide-react';
+import { isFirestoreAvailable } from '@/lib/firestore';
 
 export const dynamic = 'force-dynamic';
 
@@ -26,23 +27,29 @@ export default async function EpsteinFilesPage({
     let documents: any[] = [];
     let total = 0;
 
-    if (q && q.trim().length > 0) {
-        const result = await searchDocumentsFromFirestore(q, page);
-        documents = result.documents;
-        total = result.total;
-    } else {
-        const [docs, count] = await Promise.all([
-            epsteinDocuments.findMany({
-                where: { status: 'indexed' },
-                orderBy: { field: 'createdAt', direction: 'desc' },
-                take: 20,
-                skip: (page - 1) * 20,
-                select: ['title', 'sourceUrl', 'documentType', 'pageCount', 'summary', 'filedDate', 'status', 'createdAt'],
-            }),
-            epsteinDocuments.count({ status: 'indexed' }),
-        ]);
-        documents = docs;
-        total = count;
+    if (isFirestoreAvailable()) {
+        try {
+            if (q && q.trim().length > 0) {
+                const result = await searchDocumentsFromFirestore(q, page);
+                documents = result.documents;
+                total = result.total;
+            } else {
+                const [docs, count] = await Promise.all([
+                    epsteinDocuments.findMany({
+                        where: { status: 'indexed' },
+                        orderBy: { field: 'createdAt', direction: 'desc' },
+                        take: 20,
+                        skip: (page - 1) * 20,
+                        select: ['title', 'sourceUrl', 'documentType', 'pageCount', 'summary', 'filedDate', 'status', 'createdAt'],
+                    }),
+                    epsteinDocuments.count({ status: 'indexed' }),
+                ]);
+                documents = docs;
+                total = count;
+            }
+        } catch (e) {
+            console.error('Failed to fetch Epstein documents:', e);
+        }
     }
 
     return (

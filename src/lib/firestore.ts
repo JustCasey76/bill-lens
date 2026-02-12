@@ -13,6 +13,7 @@ import {
 
 let adminApp: App;
 let db: Firestore;
+let initError: string | null = null;
 
 function getAdminApp(): App {
     if (adminApp) return adminApp;
@@ -28,17 +29,44 @@ function getAdminApp(): App {
     const serviceAccountKey = process.env.FIREBASE_SERVICE_ACCOUNT_KEY;
 
     if (serviceAccountKey) {
-        const parsed = JSON.parse(serviceAccountKey);
-        adminApp = initializeApp({
-            credential: cert(parsed),
-            projectId: parsed.project_id,
-        });
-    } else {
-        // Runs inside Cloud Functions or with GOOGLE_APPLICATION_CREDENTIALS set
+        try {
+            const parsed = JSON.parse(serviceAccountKey);
+            adminApp = initializeApp({
+                credential: cert(parsed),
+                projectId: parsed.project_id,
+            });
+        } catch (e: any) {
+            initError = `Invalid FIREBASE_SERVICE_ACCOUNT_KEY: ${e.message}`;
+            throw new Error(initError);
+        }
+    } else if (process.env.GOOGLE_APPLICATION_CREDENTIALS) {
         adminApp = initializeApp();
+    } else {
+        // Try default credentials (works in Cloud Functions / Cloud Run)
+        try {
+            adminApp = initializeApp();
+        } catch (e: any) {
+            initError = 'Firebase Admin SDK credentials not configured. Set FIREBASE_SERVICE_ACCOUNT_KEY or GOOGLE_APPLICATION_CREDENTIALS.';
+            throw new Error(initError);
+        }
     }
 
     return adminApp;
+}
+
+/**
+ * Returns true if Firestore is available (credentials configured).
+ * Use this to gracefully degrade when running locally without credentials.
+ */
+export function isFirestoreAvailable(): boolean {
+    if (db) return true;
+    if (initError) return false;
+    try {
+        getDb();
+        return true;
+    } catch {
+        return false;
+    }
 }
 
 export function getDb(): Firestore {

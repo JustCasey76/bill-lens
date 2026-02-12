@@ -33,6 +33,11 @@ jobs:
           echo "OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }}" >> .env
           echo "CONGRESS_GOV_API_KEY=${{ secrets.CONGRESS_GOV_API_KEY }}" >> .env
 
+      - name: Enable web frameworks experiment
+        run: npx firebase-tools experiments:enable webframeworks
+        env:
+          FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
+
       - name: Deploy to Firebase
         run: npx firebase-tools deploy
         env:

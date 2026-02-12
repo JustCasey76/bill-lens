@@ -2,20 +2,31 @@ import Link from 'next/link';
 import { ArrowRight, Flame, CheckCircle2, Shield, Search } from 'lucide-react';
 import { BillCard, ClaimCard } from '@/components/Cards';
 import { bills, claims } from '@/lib/db';
+import { isFirestoreAvailable } from '@/lib/firestore';
 
 export const dynamic = 'force-dynamic';
 
 export default async function Home() {
-    const [trendingBills, recentClaimsRaw] = await Promise.all([
-        bills.findMany({ orderBy: { field: 'updatedAt', direction: 'desc' }, take: 4 }),
-        claims.findMany({ where: { status: 'checked' }, orderBy: { field: 'updatedAt', direction: 'desc' }, take: 3 }),
-    ]);
-    const recentClaims = await Promise.all(
-        recentClaimsRaw.map(async (c) => ({
-            ...c,
-            bill: c.billId ? await bills.findById(c.billId) : null,
-        }))
-    );
+    let trendingBills: any[] = [];
+    let recentClaims: any[] = [];
+
+    if (isFirestoreAvailable()) {
+        try {
+            const [billsResult, recentClaimsRaw] = await Promise.all([
+                bills.findMany({ orderBy: { field: 'updatedAt', direction: 'desc' }, take: 4 }),
+                claims.findMany({ where: { status: 'checked' }, orderBy: { field: 'updatedAt', direction: 'desc' }, take: 3 }),
+            ]);
+            trendingBills = billsResult;
+            recentClaims = await Promise.all(
+                recentClaimsRaw.map(async (c) => ({
+                    ...c,
+                    bill: c.billId ? await bills.findById(c.billId) : null,
+                }))
+            );
+        } catch (e) {
+            console.error('Failed to fetch data from Firestore:', e);
+        }
+    }
 
     return (
         <div className="space-y-16 pb-20">

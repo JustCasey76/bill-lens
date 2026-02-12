@@ -3,6 +3,7 @@ import { ClaimCard } from '@/components/Cards';
 import { ClaimSubmitForm } from '@/components/ClaimSubmitForm';
 import { Shield, Filter } from 'lucide-react';
 import Link from 'next/link';
+import { isFirestoreAvailable } from '@/lib/firestore';
 
 export const dynamic = 'force-dynamic';
 
@@ -22,24 +23,34 @@ export default async function ClaimsPage({
 }) {
     const { verdict, q } = await searchParams;
 
-    const [checkedClaimsRaw, pendingCount] = await Promise.all([
-        claims.findMany({
-            where: {
-                status: 'checked',
-                ...(verdict ? { verdict } : {}),
-                ...(q ? { contentContains: q } : {}),
-            },
-            orderBy: { field: 'updatedAt', direction: 'desc' },
-            take: 50,
-        }),
-        claims.count({ status: 'pending' }),
-    ]);
-    const checkedClaims = await Promise.all(
-        checkedClaimsRaw.map(async (c) => ({
-            ...c,
-            bill: c.billId ? await bills.findById(c.billId) : null,
-        }))
-    );
+    let checkedClaims: any[] = [];
+    let pendingCount = 0;
+
+    if (isFirestoreAvailable()) {
+        try {
+            const [checkedClaimsRaw, pending] = await Promise.all([
+                claims.findMany({
+                    where: {
+                        status: 'checked',
+                        ...(verdict ? { verdict } : {}),
+                        ...(q ? { contentContains: q } : {}),
+                    },
+                    orderBy: { field: 'updatedAt', direction: 'desc' },
+                    take: 50,
+                }),
+                claims.count({ status: 'pending' }),
+            ]);
+            pendingCount = pending;
+            checkedClaims = await Promise.all(
+                checkedClaimsRaw.map(async (c) => ({
+                    ...c,
+                    bill: c.billId ? await bills.findById(c.billId) : null,
+                }))
+            );
+        } catch (e) {
+            console.error('Failed to fetch claims:', e);
+        }
+    }
 
     return (
         <div className="container mx-auto px-4 py-8">

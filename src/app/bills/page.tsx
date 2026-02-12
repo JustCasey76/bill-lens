@@ -1,6 +1,7 @@
 import { bills } from '@/lib/db';
 import { BillCard } from '@/components/Cards';
 import { Search, FileText } from 'lucide-react';
+import { isFirestoreAvailable } from '@/lib/firestore';
 
 export const dynamic = 'force-dynamic';
 
@@ -11,11 +12,18 @@ export default async function AllBillsPage({
 }) {
     const { q } = await searchParams;
 
-    const billsList = await bills.findMany({
-        where: q ? { titleContains: q } : undefined,
-        orderBy: { field: 'updatedAt', direction: 'desc' },
-        take: 50,
-    });
+    let billsList: any[] = [];
+    if (isFirestoreAvailable()) {
+        try {
+            billsList = await bills.findMany({
+                where: q ? { titleContains: q } : undefined,
+                orderBy: { field: 'updatedAt', direction: 'desc' },
+                take: 50,
+            });
+        } catch (e) {
+            console.error('Failed to fetch bills:', e);
+        }
+    }
 
     return (
         <div className="container mx-auto px-4 py-8">
