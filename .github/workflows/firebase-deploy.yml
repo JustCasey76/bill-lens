@@ -44,4 +44,3 @@ jobs:
         run: npx firebase-tools deploy
         env:
           FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
-          TURBOPACK: "0"
