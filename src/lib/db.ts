@@ -1,12 +1,11 @@
 /**
- * Database abstraction layer — Firestore-backed replacement for Prisma.
+ * Database abstraction layer — Firestore-backed.
  *
- * Provides typed CRUD helpers for every collection, matching the
- * data shapes previously defined in the Prisma schema.
+ * Provides typed CRUD helpers for every collection.
  *
- * Key differences from PostgreSQL/Prisma:
+ * Key design notes:
  * - No ACID transactions across collections (use batched writes where needed)
- * - Full-text search uses tokenized searchTerms array instead of tsvector
+ * - Full-text search uses tokenized searchTerms array
  * - Composite unique constraints enforced via deterministic document IDs
  * - Relations are denormalized or resolved via secondary queries
  */

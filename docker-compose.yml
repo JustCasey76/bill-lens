@@ -1,21 +1,7 @@
-services:
-  postgres:
-    image: postgres:15-alpine
-    container_name: billlens_db
-    environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: password
-      POSTGRES_DB: billlens
-    ports:
-      - "5433:5432"
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-
-  redis:
-    image: redis:alpine
-    container_name: billlens_redis
-    ports:
-      - "6379:6379"
-
-volumes:
-  postgres_data:
+# BillLens uses Firebase/Firestore — no local database containers needed.
+# This file is kept for the Firebase Emulator Suite if you want local emulation.
+#
+# To use Firebase emulators instead:
+#   npx firebase emulators:start
+#
+# See https://firebase.google.com/docs/emulator-suite for details.

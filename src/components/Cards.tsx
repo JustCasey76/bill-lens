@@ -42,7 +42,7 @@ export function BillCard({ bill }: { bill: any }) {
 }
 
 export function ClaimCard({ claim }: { claim: any }) {
-    // Support both Prisma shape (claim.verdict, claim.analysis) and mock shape (claim.verdict, claim.explanation)
+    // Support both DB shape (claim.verdict, claim.analysis) and mock shape (claim.verdict, claim.explanation)
     const verdict = claim.verdict || 'Unsupported';
     const config = verdictConfig[verdict as keyof typeof verdictConfig] || verdictConfig.Unsupported;
     const Icon = config.icon;

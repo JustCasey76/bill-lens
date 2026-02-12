@@ -2,11 +2,11 @@ import Google from 'next-auth/providers/google';
 import type { NextAuthConfig } from 'next-auth';
 
 /**
- * Auth config shared between the full auth (with Prisma adapter) and
- * the middleware (Edge-compatible, no Prisma).
+ * Auth config shared between the full auth (with Firestore adapter) and
+ * the middleware (Edge-compatible, no Firestore).
  *
  * These callbacks only read from the JWT — no DB calls.
- * The full auth.ts overrides these callbacks with Prisma-enhanced versions.
+ * The full auth.ts overrides these callbacks with Firestore-enhanced versions.
  */
 export const authConfig = {
     providers: [

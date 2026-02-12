@@ -2,34 +2,25 @@
 
 Automated, trustworthy legislation tracker and fact-checking hub. Track US Congress bills, read AI summaries with citations, and verify viral claims against official bill text.
 
-**Stack:** Next.js, Prisma, PostgreSQL, Redis, BullMQ.
+**Stack:** Next.js 16, Firebase Admin SDK (Firestore), OpenAI, Congress.gov API.
 
 ## Running locally
 
-1. **Start Postgres and Redis** (Docker):
+1. **Environment:** Copy `.env.example` to `.env` and fill in your keys:
+
+   - `OPENAI_API_KEY` — for AI summaries and claim fact-checking
+   - `CONGRESS_GOV_API_KEY` — for bill ingestion from Congress.gov
+   - `FIREBASE_SERVICE_ACCOUNT_KEY` — JSON string for Firestore access (or set `GOOGLE_APPLICATION_CREDENTIALS` to a file path)
+   - `NEXT_PUBLIC_FIREBASE_*` — client-side Firebase config for Analytics
+   - `AUTH_SECRET`, `AUTH_GOOGLE_ID`, `AUTH_GOOGLE_SECRET` — for NextAuth Google sign-in
+
+2. **Install dependencies:**
 
    ```bash
-   docker-compose up -d
+   npm install
    ```
 
-   Postgres: `localhost:5433`, DB `billlens`. Redis: `localhost:6379`.
-
-2. **Environment:** Create `.env` in the project root and set:
-
-   - `DATABASE_URL` — e.g. `postgresql://postgres:password@localhost:5433/billlens`
-   - `REDIS_URL` — optional; defaults to `localhost:6379`
-   - `OPENAI_API_KEY` — for summaries and claim-check
-   - `CONGRESS_GOV_API_KEY` — for bill ingestion
-   - **Firebase (client, optional):** `NEXT_PUBLIC_FIREBASE_API_KEY`, `NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN`, `NEXT_PUBLIC_FIREBASE_PROJECT_ID`, `NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET`, `NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID`, `NEXT_PUBLIC_FIREBASE_APP_ID`, `NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID` — for Firebase Analytics (see `src/lib/firebase.ts`)
-
-3. **Database:**
-
-   ```bash
-   npx prisma migrate deploy
-   npx prisma generate
-   ```
-
-4. **Dev server:**
+3. **Dev server:**
 
    ```bash
    npm run dev
@@ -37,25 +28,28 @@ Automated, trustworthy legislation tracker and fact-checking hub. Track US Congr
 
    Open [http://localhost:3000](http://localhost:3000).
 
-## Deploy to Firebase (online)
+## Deploy to Firebase Hosting
 
-On Windows, `firebase deploy` can fail with a symlink error. Use **GitHub Actions** so the build runs on Linux and deploys for you:
+On Windows, `firebase deploy` can fail with a symlink error. Use **GitHub Actions** so the build runs on Linux:
 
-1. **Push this repo to GitHub** (if you haven’t already).
+1. **Push this repo to GitHub** (if you haven't already).
 
 2. **Get a Firebase CI token:** run `npx firebase-tools login:ci` in a terminal, sign in, and copy the token.
 
-3. **Add GitHub repo secrets** (Settings → Secrets and variables → Actions):
-   - `FIREBASE_TOKEN` — the token from step 2
-   - Optional (for client env in build): `NEXT_PUBLIC_FIREBASE_API_KEY`, `NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN`, `NEXT_PUBLIC_FIREBASE_PROJECT_ID`, `NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET`, `NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID`, `NEXT_PUBLIC_FIREBASE_APP_ID`, `NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID` (same values as in your `.env`)
+3. **Add GitHub repo secrets** (Settings > Secrets and variables > Actions):
+   - `FIREBASE_TOKEN` — the CI token from step 2
+   - `FIREBASE_SERVICE_ACCOUNT_KEY` — your service account JSON (for Firestore)
+   - `OPENAI_API_KEY`, `CONGRESS_GOV_API_KEY` — API keys
+   - Firebase client vars: `NEXT_PUBLIC_FIREBASE_API_KEY`, `NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN`, `NEXT_PUBLIC_FIREBASE_PROJECT_ID`, `NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET`, `NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID`, `NEXT_PUBLIC_FIREBASE_APP_ID`, `NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID`
 
-4. **Push to `main` or `master`** (or run the “Deploy to Firebase Hosting” workflow manually). The workflow will build and deploy. Your app will be at **https://bill-lens.web.app**.
+4. **Push to `main`** (or run the "Deploy to Firebase Hosting" workflow manually). Your app will be at **https://bill-lens.web.app**.
 
-For the deployed app to use the database and APIs, configure production env vars (e.g. `DATABASE_URL`, `REDIS_URL`, `OPENAI_API_KEY`, `CONGRESS_GOV_API_KEY`) in the Firebase/Cloud Functions environment.
+## Deploy to Vercel
+
+Connect the repo on [vercel.com](https://vercel.com); set the environment variables listed above in the Vercel project settings.
 
 ## Other deploy options
 
-- **Firebase (local):** `firebase deploy` — may fail on Windows due to symlinks; enable Developer Mode (Windows Settings → For developers) and try again, or use the GitHub workflow above.
-- **Vercel:** Connect the repo; set `DATABASE_URL`, `REDIS_URL`, `OPENAI_API_KEY`, `CONGRESS_GOV_API_KEY` in the project environment.
+- **Firebase (local):** `firebase deploy` — may fail on Windows due to symlinks. Use the GitHub workflow or the Docker script at `scripts/deploy-firebase.ps1`.
 
 See `docs/PRD.md` for product overview and `docs/IA_and_Data.md` for data/IA notes.

@@ -18,9 +18,7 @@ try {
         -v "${projectRoot}:/app" `
         -w /app `
         -e FIREBASE_TOKEN=$token `
-        -e DATABASE_URL="postgresql://postgres:password@localhost:5432/billlens" `
-        -e REDIS_URL="redis://localhost:6379" `
-        node:20-slim bash -c "npm ci && npx prisma generate && npx firebase-tools deploy"
+        node:20-slim bash -c "npm ci && npx firebase-tools deploy"
     if ($LASTEXITCODE -eq 0) { Write-Host "Deploy complete. Site: https://bill-lens.web.app" -ForegroundColor Green }
     else { exit $LASTEXITCODE }
 } finally {

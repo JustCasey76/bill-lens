@@ -24,7 +24,7 @@
 - **Deep Dive:** User compares versions via Diff Viewer.
 
 ## 5. Technical Constraints & Requirements
-- **Stack:** Next.js, Prisma, Postgres, Redis, BullMQ.
+- **Stack:** Next.js 16, Firebase Admin SDK (Firestore), OpenAI, Congress.gov API.
 - **Performance:** 90+ Lighthouse score, SSR/ISR where possible.
 - **Security:** Rate limiting, strict JSON parsing for AI outputs.
 - **SEO:** Structured data, sitemaps, semantic HTML.
