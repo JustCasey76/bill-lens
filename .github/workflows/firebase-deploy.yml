@@ -35,13 +35,17 @@ jobs:
           echo "GOOGLE_CLIENT_ID=${{ secrets.GOOGLE_CLIENT_ID }}" >> .env
           echo "GOOGLE_CLIENT_SECRET=${{ secrets.GOOGLE_CLIENT_SECRET }}" >> .env
 
+      - name: Build with webpack (Turbopack incompatible with Firebase)
+        run: npx next build --no-turbopack
+        env:
+          NODE_ENV: production
+
       - name: Enable web frameworks experiment
         run: npx firebase-tools experiments:enable webframeworks
         env:
           FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
 
-      - name: Deploy to Firebase
+      - name: Deploy to Firebase (skip build, already built)
         run: npx firebase-tools deploy
         env:
           FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
-          GOOGLE_APPLICATION_CREDENTIALS: ${{ secrets.GOOGLE_APPLICATION_CREDENTIALS }}
