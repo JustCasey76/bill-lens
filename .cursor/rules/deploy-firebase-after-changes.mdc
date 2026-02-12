@@ -1,0 +1,15 @@
+---
+description: After any code/config changes, commit and push to main so Firebase deploys automatically.
+alwaysApply: true
+---
+
+# Deploy to Firebase After Changes
+
+When you make changes to this project (bill-lens):
+
+1. **Commit** the changes with a clear message (include version bump in package.json if applicable, per project rule).
+2. **Push to origin main**: `git push origin main`
+
+Do this yourself in the same session; do not ask the user to push or deploy. The GitHub Actions workflow "Deploy to Firebase Hosting" runs on push to main and deploys to https://bill-lens.web.app.
+
+Exception: do not commit or push if the user explicitly says to stop, not to deploy, or to leave changes uncommitted.
