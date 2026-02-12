@@ -163,6 +163,14 @@ export async function ingestRecentBills(limit = 20): Promise<IngestResult> {
         const billType = b.type.toLowerCase(); // API returns "HR" → we store "hr"
         const billLabel = `${b.type}${b.number} (${b.congress}th)`;
 
+        // Only ingest bills not yet passed (skip enacted / signed / presented to president)
+        const latestActionTextForStatus = b.latestAction?.text;
+        const statusFromList = deriveStatus(latestActionTextForStatus);
+        if (isBillPassedOrEnacted(statusFromList)) {
+            await logJob('INGESTION', 'INFO', `Skipping ${billLabel} — already ${statusFromList}`);
+            continue;
+        }
+
         try {
             // 2. Fetch full bill details (sponsors, policy area, etc.)
             await rateLimitDelay();
@@ -318,6 +326,15 @@ export async function ingestRecentBills(limit = 20): Promise<IngestResult> {
     });
 
     return result;
+}
+
+/**
+ * True if the bill has already passed (enacted, signed, or presented to president).
+ * We only ingest bills not yet passed.
+ */
+function isBillPassedOrEnacted(status: string): boolean {
+    const final = ['Enacted', 'Signed by President', 'Presented to President', 'Vetoed'];
+    return final.includes(status);
 }
 
 /**

@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import {
     User, Mail, Calendar, ShieldCheck, Database,
-    BookOpen, Shield, FileText, BarChart3, Settings,
+    Shield, FileText, BarChart3, Settings,
     ExternalLink, LogOut,
 } from 'lucide-react';
 import { signOut } from 'next-auth/react';
@@ -152,19 +152,7 @@ export default function ProfilePage() {
                             </div>
                             <div>
                                 <p className="text-sm font-medium text-slate-900 dark:text-white">Bill Ingestion</p>
-                                <p className="text-xs text-slate-500">Fetch from Congress.gov</p>
-                            </div>
-                        </Link>
-                        <Link
-                            href="/admin"
-                            className="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
-                        >
-                            <div className="w-9 h-9 rounded-lg bg-slate-100 dark:bg-slate-800 flex items-center justify-center">
-                                <BookOpen size={16} className="text-slate-600 dark:text-slate-400" />
-                            </div>
-                            <div>
-                                <p className="text-sm font-medium text-slate-900 dark:text-white">Epstein Scraper</p>
-                                <p className="text-xs text-slate-500">DOJ document indexing</p>
+                                <p className="text-xs text-slate-500">Bills not yet passed</p>
                             </div>
                         </Link>
                         <Link
