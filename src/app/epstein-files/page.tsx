@@ -27,12 +27,14 @@ export default async function EpsteinFilesPage({
     let documents: any[] = [];
     let total = 0;
 
+    let totalIndexed = 0;
     if (isFirestoreAvailable()) {
         try {
             if (q && q.trim().length > 0) {
                 const result = await searchDocumentsFromFirestore(q, page);
                 documents = result.documents;
                 total = result.total;
+                totalIndexed = await epsteinDocuments.count({ status: 'indexed' });
             } else {
                 const [docs, count] = await Promise.all([
                     epsteinDocuments.findMany({
@@ -46,6 +48,7 @@ export default async function EpsteinFilesPage({
                 ]);
                 documents = docs;
                 total = count;
+                totalIndexed = count;
             }
         } catch (e) {
             console.error('Failed to fetch Epstein documents:', e);
@@ -83,7 +86,7 @@ export default async function EpsteinFilesPage({
             </div>
 
             {/* Search */}
-            <form className="mb-8">
+            <form className="mb-8" action="/epstein-files" method="get">
                 <div className="relative max-w-2xl">
                     <Search className="absolute left-4 top-3.5 h-5 w-5 text-slate-400" />
                     <input
@@ -106,14 +109,25 @@ export default async function EpsteinFilesPage({
                 <div className="text-center py-20 text-slate-500 bg-slate-50 dark:bg-slate-900 rounded-xl border border-dashed border-slate-300 dark:border-slate-700">
                     <BookOpen size={40} className="mx-auto mb-4 text-slate-300 dark:text-slate-600" />
                     {q ? (
-                        <>
-                            <p className="text-lg font-medium">No documents found</p>
-                            <p className="text-sm mt-2">Try different search terms</p>
-                        </>
+                        totalIndexed === 0 ? (
+                            <>
+                                <p className="text-lg font-medium">No documents indexed yet</p>
+                                <p className="text-sm mt-2 max-w-md mx-auto">
+                                    Search runs over DOJ documents that have been indexed. An admin can run the &ldquo;Index DOJ documents&rdquo; action from the Admin dashboard to add documents, then search will return results.
+                                </p>
+                            </>
+                        ) : (
+                            <>
+                                <p className="text-lg font-medium">No documents found</p>
+                                <p className="text-sm mt-2">Try different search terms</p>
+                            </>
+                        )
                     ) : (
                         <>
                             <p className="text-lg font-medium">No documents indexed yet</p>
-                            <p className="text-sm mt-2">Documents will appear here once the scraper has run</p>
+                            <p className="text-sm mt-2 max-w-md mx-auto">
+                                An admin can run the &ldquo;Index DOJ documents&rdquo; action from the Admin dashboard to add DOJ documents for search.
+                            </p>
                         </>
                     )}
                 </div>

@@ -1,7 +1,7 @@
 "use client";
 import { useState, useEffect, useRef } from 'react';
 import { TelemetryConsole } from '@/components/TelemetryConsole';
-import { Database, Shield, Loader2, CheckCircle2, XCircle, Clock } from 'lucide-react';
+import { Database, BookOpen, Shield, Loader2, CheckCircle2, XCircle, Clock } from 'lucide-react';
 
 type JobStatus = 'idle' | 'running' | 'success' | 'error';
 
@@ -61,26 +61,31 @@ function ProgressBar({ active }: { active: boolean }) {
 
 export default function AdminDashboard() {
     const [ingest, setIngest] = useState<JobState>(initialJobState);
+    const [scrape, setScrape] = useState<JobState>(initialJobState);
     const ingestTimer = useRef<NodeJS.Timeout | null>(null);
+    const scrapeTimer = useRef<NodeJS.Timeout | null>(null);
 
     // Elapsed-time ticker
     useEffect(() => {
         const tick = setInterval(() => {
-            setIngest(prev => prev.status === 'running' && prev.startedAt
-                ? { ...prev, elapsed: Date.now() - prev.startedAt }
-                : prev
-            );
+            setIngest(prev => prev.status === 'running' && prev.startedAt ? { ...prev, elapsed: Date.now() - prev.startedAt } : prev);
+            setScrape(prev => prev.status === 'running' && prev.startedAt ? { ...prev, elapsed: Date.now() - prev.startedAt } : prev);
         }, 1000);
         return () => clearInterval(tick);
     }, []);
 
-    // Auto-clear success/error after 30s
     useEffect(() => {
         if (ingest.status === 'success' || ingest.status === 'error') {
             ingestTimer.current = setTimeout(() => setIngest(initialJobState), 30000);
             return () => { if (ingestTimer.current) clearTimeout(ingestTimer.current); };
         }
     }, [ingest.status]);
+    useEffect(() => {
+        if (scrape.status === 'success' || scrape.status === 'error') {
+            scrapeTimer.current = setTimeout(() => setScrape(initialJobState), 30000);
+            return () => { if (scrapeTimer.current) clearTimeout(scrapeTimer.current); };
+        }
+    }, [scrape.status]);
 
     const triggerIngest = async () => {
         setIngest({ status: 'running', message: 'Fetching bills from Congress.gov...', startedAt: Date.now(), elapsed: 0 });
@@ -108,11 +113,32 @@ export default function AdminDashboard() {
         }
     };
 
+    const triggerEpsteinIndex = async () => {
+        setScrape({ status: 'running', message: 'Discovering and indexing DOJ documents...', startedAt: Date.now(), elapsed: 0 });
+        try {
+            const res = await fetch('/api/admin/epstein-scrape', { method: 'POST' });
+            const data = await res.json();
+            if (data.success !== false) {
+                setScrape({
+                    status: 'success',
+                    message: data.message || 'Indexing complete.',
+                    startedAt: null,
+                    elapsed: 0,
+                    details: { totalFound: data.totalFound, totalQueued: data.totalQueued, totalSkipped: data.totalSkipped },
+                });
+            } else {
+                setScrape({ status: 'error', message: data.error || 'Indexing failed.', startedAt: null, elapsed: 0 });
+            }
+        } catch {
+            setScrape({ status: 'error', message: 'Network error — could not reach server.', startedAt: null, elapsed: 0 });
+        }
+    };
+
     return (
         <div className="container mx-auto px-4 py-8">
             <h1 className="text-2xl font-bold mb-6 text-slate-900 dark:text-white">Admin Dashboard</h1>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
                 {/* Bill Ingestion */}
                 <div className="p-6 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-sm">
                     <div className="flex items-center gap-2 mb-3">
@@ -176,6 +202,63 @@ export default function AdminDashboard() {
                                             {ingest.details.summariesQueued !== undefined && (
                                                 <span>Summaries: <strong>{ingest.details.summariesQueued}</strong></span>
                                             )}
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        </div>
+                    )}
+                </div>
+
+                {/* Index DOJ documents (Epstein Files search) */}
+                <div className="p-6 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-sm">
+                    <div className="flex items-center gap-2 mb-3">
+                        <BookOpen className="w-5 h-5 text-slate-600" />
+                        <h2 className="font-semibold">Epstein Files</h2>
+                    </div>
+                    <p className="text-sm text-slate-500 mb-4">
+                        Index DOJ documents so the Epstein Files search has content to search.
+                    </p>
+                    <button
+                        onClick={triggerEpsteinIndex}
+                        disabled={scrape.status === 'running'}
+                        className="w-full px-4 py-2.5 bg-slate-800 text-white text-sm font-medium rounded-lg hover:bg-slate-900 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2 dark:bg-slate-700 dark:hover:bg-slate-600"
+                    >
+                        {scrape.status === 'running' ? (
+                            <>
+                                <Loader2 className="w-4 h-4 animate-spin" />
+                                Indexing...
+                            </>
+                        ) : (
+                            'Index DOJ documents'
+                        )}
+                    </button>
+                    <ProgressBar active={scrape.status === 'running'} />
+                    {scrape.status !== 'idle' && (
+                        <div className={`mt-3 p-3 rounded-lg text-xs ${
+                            scrape.status === 'running' ? 'bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800' :
+                            scrape.status === 'success' ? 'bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800' :
+                            'bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800'
+                        }`}>
+                            <div className="flex items-start gap-2">
+                                <StatusIcon status={scrape.status} />
+                                <div className="flex-1 min-w-0">
+                                    <p className={`font-medium ${
+                                        scrape.status === 'running' ? 'text-blue-700 dark:text-blue-300' :
+                                        scrape.status === 'success' ? 'text-green-700 dark:text-green-300' :
+                                        'text-red-700 dark:text-red-300'
+                                    }`}>{scrape.message}</p>
+                                    {scrape.status === 'running' && (
+                                        <p className="text-slate-500 mt-1 flex items-center gap-1">
+                                            <Clock className="w-3 h-3" />
+                                            Elapsed: {formatElapsed(scrape.elapsed)}
+                                        </p>
+                                    )}
+                                    {scrape.status === 'success' && scrape.details && (
+                                        <div className="mt-2 grid grid-cols-2 gap-x-4 gap-y-1 text-slate-600 dark:text-slate-400">
+                                            {scrape.details.totalFound !== undefined && <span>Found: <strong>{scrape.details.totalFound}</strong></span>}
+                                            {scrape.details.totalQueued !== undefined && <span>New: <strong>{scrape.details.totalQueued}</strong></span>}
+                                            {scrape.details.totalSkipped !== undefined && <span>Skipped: <strong>{scrape.details.totalSkipped}</strong></span>}
                                         </div>
                                     )}
                                 </div>
