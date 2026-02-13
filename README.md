@@ -2,7 +2,7 @@
 
 Automated, trustworthy legislation tracker and fact-checking hub. Track US Congress bills, read AI summaries with citations, and verify viral claims against official bill text.
 
-**Stack:** Next.js 16, Firebase Admin SDK (Firestore), OpenAI, Congress.gov API.
+**Stack:** Next.js 15, Firebase (Firestore, Hosting, Auth via NextAuth + Firestore adapter), OpenAI, Congress.gov API. No Vercel, Upstash, or Supabase.
 
 ## Running locally
 
@@ -42,14 +42,12 @@ On Windows, `firebase deploy` can fail with a symlink error. Use **GitHub Action
    - `OPENAI_API_KEY`, `CONGRESS_GOV_API_KEY` — API keys
    - Firebase client vars: `NEXT_PUBLIC_FIREBASE_API_KEY`, `NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN`, `NEXT_PUBLIC_FIREBASE_PROJECT_ID`, `NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET`, `NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID`, `NEXT_PUBLIC_FIREBASE_APP_ID`, `NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID`
 
-4. **Push to `main`** (or run the "Deploy to Firebase Hosting" workflow manually). Your app will be at **https://bill-lens.web.app**.
+4. **Deploy:** Run the "Deploy to Firebase Hosting" workflow manually from the GitHub Actions tab (or run `firebase deploy` locally; on Windows it may fail due to path symlinks — use WSL or a path without `!`).
 
-## Deploy to Vercel
+Your app will be at **https://bill-lens.web.app**. Hosting is Firebase only (no Vercel).
 
-Connect the repo on [vercel.com](https://vercel.com); set the environment variables listed above in the Vercel project settings.
+## Other
 
-## Other deploy options
-
-- **Firebase (local):** `firebase deploy` — may fail on Windows due to symlinks. Use the GitHub workflow or the Docker script at `scripts/deploy-firebase.ps1`.
+- **Firebase (local):** `firebase deploy` — may fail on Windows due to symlinks. Use the GitHub workflow or `scripts/deploy-firebase.ps1` (Docker) if needed.
 
 See `docs/PRD.md` for product overview and `docs/IA_and_Data.md` for data/IA notes.
