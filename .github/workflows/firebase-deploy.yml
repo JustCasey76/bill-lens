@@ -1,8 +1,7 @@
 name: Deploy to Firebase Hosting
 
+# GitHub is for backups only. Deploy via: firebase deploy (locally).
 on:
-  push:
-    branches: [main, master]
   workflow_dispatch:
 
 jobs:

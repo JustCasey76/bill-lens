@@ -1,15 +1,12 @@
 ---
-description: After any changes, commit and push to main so Firebase deploys automatically.
+description: Deploy via firebase deploy locally. GitHub is for backups only.
 alwaysApply: true
 ---
 
-# Deploy to Firebase After Changes
+# Deploy and Backups
 
-When you make changes to this project (bill-lens):
+- **Deploy to Firebase:** Run `firebase deploy` from the project root after making changes (or when the user asks to deploy). Do not use GitHub to trigger deploy — GitHub is for backups only.
+- **Commits:** Commit changes locally with a clear message (and version bump in package.json when applicable).
+- **GitHub (backup only):** Push to GitHub only when the user asks to back up / push to GitHub, not to trigger a deploy. Example: when they say "git" or "backup to github" per their rules.
 
-1. **Commit** the changes with a clear message (include version bump in package.json when applicable, per project rule).
-2. **Push to origin main** so the "Deploy to Firebase Hosting" workflow runs and the app updates at https://bill-lens.web.app.
-
-Do this yourself in the same session. The user should not have to run deploy or push — only direct you; you handle commit, push, and thus deploy.
-
-Exception: do not commit or push if the user explicitly says to stop, not to deploy, or to leave changes uncommitted.
+If the user says "deploy" or "deploy to Firebase", run `firebase deploy` (may require Firebase login and can fail on Windows due to symlinks; use WSL or enable Developer Mode if needed).
