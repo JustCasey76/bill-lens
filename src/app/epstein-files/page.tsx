@@ -79,7 +79,7 @@ export default async function EpsteinFilesPage({
                     <div>
                         <p className="text-sm text-amber-800 dark:text-amber-200 font-medium">About these documents</p>
                         <p className="text-sm text-amber-700 dark:text-amber-300 mt-1">
-                            These are official documents released by the U.S. Department of Justice. Document text is extracted automatically from PDF files and may contain OCR errors. Always refer to the original source documents for legal accuracy.
+                            These are official documents released by the U.S. Department of Justice. We index document metadata and text for search only; original PDFs stay on DOJ servers. Extracted text may contain OCR errors—refer to the source for legal accuracy.
                         </p>
                     </div>
                 </div>

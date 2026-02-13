@@ -15,9 +15,9 @@ interface JobState {
         versionsCreated?: number;
         textsDownloaded?: number;
         summariesQueued?: number;
-        totalFound?: number;
-        totalQueued?: number;
-        totalSkipped?: number;
+        totalDiscovered?: number;
+        newDocuments?: number;
+        processed?: number;
     };
 }
 
@@ -119,12 +119,18 @@ export default function AdminDashboard() {
             const res = await fetch('/api/admin/epstein-scrape', { method: 'POST' });
             const data = await res.json();
             if (data.success !== false) {
+                const disc = data.discovery ?? {};
+                const ext = data.extraction ?? {};
                 setScrape({
                     status: 'success',
                     message: data.message || 'Indexing complete.',
                     startedAt: null,
                     elapsed: 0,
-                    details: { totalFound: data.totalFound, totalQueued: data.totalQueued, totalSkipped: data.totalSkipped },
+                    details: {
+                        totalDiscovered: disc.totalDiscovered,
+                        newDocuments: disc.newDocuments,
+                        processed: ext.processed,
+                    },
                 });
             } else {
                 setScrape({ status: 'error', message: data.error || 'Indexing failed.', startedAt: null, elapsed: 0 });
@@ -217,7 +223,7 @@ export default function AdminDashboard() {
                         <h2 className="font-semibold">Epstein Files</h2>
                     </div>
                     <p className="text-sm text-slate-500 mb-4">
-                        Index DOJ documents so the Epstein Files search has content to search.
+                        Discover DOJ document URLs and index text for search. Original files stay on DOJ; we only store metadata and extracted text so you can find documents by search.
                     </p>
                     <button
                         onClick={triggerEpsteinIndex}
@@ -256,9 +262,9 @@ export default function AdminDashboard() {
                                     )}
                                     {scrape.status === 'success' && scrape.details && (
                                         <div className="mt-2 grid grid-cols-2 gap-x-4 gap-y-1 text-slate-600 dark:text-slate-400">
-                                            {scrape.details.totalFound !== undefined && <span>Found: <strong>{scrape.details.totalFound}</strong></span>}
-                                            {scrape.details.totalQueued !== undefined && <span>New: <strong>{scrape.details.totalQueued}</strong></span>}
-                                            {scrape.details.totalSkipped !== undefined && <span>Skipped: <strong>{scrape.details.totalSkipped}</strong></span>}
+                                            {scrape.details.totalDiscovered !== undefined && <span>Discovered: <strong>{scrape.details.totalDiscovered}</strong></span>}
+                                            {scrape.details.newDocuments !== undefined && <span>New URLs: <strong>{scrape.details.newDocuments}</strong></span>}
+                                            {scrape.details.processed !== undefined && <span>Indexed: <strong>{scrape.details.processed}</strong></span>}
                                         </div>
                                     )}
                                 </div>
